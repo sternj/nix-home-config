@@ -149,20 +149,24 @@ in {
     userName = "Sam Stern";
     userEmail = "jstern@umass.edu";
   };
-  programs.tmux = lib.mkIf isContainer {
+  programs.tmux = lib.mkIf (! isContainer) {
+  # programs.tmux = {
     enable = true;
     # You can specify your tmux configuration file here.
     # configFile = ./dotfiles/tmux.conf;
+    terminal = "tmux-256color";
     plugins = with pkgs.tmuxPlugins; [
       # You can add your tmux plugins here.
       # For example, to add the 'tmux-resurrect' plugin:
       # tmux-resurrect
       {
-        plugin = tmuxPlugins.catppuccin;
+        plugin = catppuccin;
         extraConfig = '' 
         set -g @catppuccin_flavour 'mocha'
         set -g @catppuccin_window_tabs_enabled on
         set -g @catppuccin_date_time "%H:%M"
+        set -g @catppuccin_window_default_text "#W"
+        set -g @catppuccin_window_current_text "#W"
         '';
       }
       better-mouse-mode

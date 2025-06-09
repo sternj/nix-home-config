@@ -34,6 +34,11 @@
         "type": "volume",
         "source": "${devcontainerId}-nix-cache",
         "target": "/home/vscode/.cache/nix"
+      },
+      {
+        "type": "volume",
+        "source": "${devcontainerId}-nix-data",
+        "target": "/home/vscode/.nix-data"
       }
     ]
   }
