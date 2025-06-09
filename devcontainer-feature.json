@@ -1,0 +1,40 @@
+{
+    "name": "nix-home-manager",
+    "version": "0.1.0",
+    "description": "Install Determinate Nix and apply Home Manager config from this repo",
+    "installsAfter": [],
+    "options": {},
+    "mounts": [
+      {
+        "type": "volume",
+        "source": "${devcontainerId}-nix-store",
+        "target": "/nix"
+      },
+      {
+        "type": "volume",
+        "source": "${devcontainerId}-nix-profile",
+        "target": "/home/vscode/.nix-profile"
+      },
+      {
+        "type": "volume",
+        "source": "${devcontainerId}-nix-defexpr",
+        "target": "/home/vscode/.nix-defexpr"
+      },
+      // {
+      //   "type": "volume",
+      //   "source": "${devcontainerId}-nix-channels",
+      //   "target": "/home/vscode/.nix-channels"
+      // },
+      {
+        "type": "volume",
+        "source": "${devcontainerId}-nix-state",
+        "target": "/home/vscode/.local/state/nix"
+      },
+      {
+        "type": "volume",
+        "source": "${devcontainerId}-nix-cache",
+        "target": "/home/vscode/.cache/nix"
+      }
+    ]
+  }
+  

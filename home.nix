@@ -1,11 +1,16 @@
 { config, pkgs, lib, ... }:
-
-let localInfo = import ./local_info.nix; 
+let 
+  userName = builtins.trace "Home Manager configuration for user: ${builtins.getEnv "USER"} in directory: ${homeDirectory} (isContainer: ${toString isContainer})" (builtins.getEnv "USER");
+  homeDirectory = builtins.getEnv "HOME";
+  isContainer_env = (builtins.getEnv "IS_CONTAINER");
+  isContainer = if (isContainer_env == "true" || isContainer_env == "1") then true else false;
+  # nothing =  "";
 in {
-  # Home Manager needs a bit of information about you and the paths it should
-  # manage.
-  home.username = localInfo.userName;
-  home.homeDirectory = localInfo.homeDirectory;
+
+
+  # This is the Home Manager configuration for your user. It is used to manage
+  home.username = userName;
+  home.homeDirectory = homeDirectory;
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -18,7 +23,7 @@ in {
 
   # The home.packages option allows you to install Nix packages into your
   # environment.
-  home.packages = [
+  home.packages = with pkgs; [
     # # Adds the 'hello' command to your environment. It prints a friendly
     # # "Hello, world!" when run.
     # pkgs.hello
@@ -35,18 +40,18 @@ in {
     # (pkgs.writeShellScriptBin "my-hello" ''
     #   echo "Hello, ${config.home.username}!"
     # '')
-    pkgs.jq
-    pkgs.fd
-    pkgs.pyenv
-    pkgs.numbat
-    pkgs.hck
-    pkgs.delta
-    pkgs.bat
-    pkgs.eza
-    pkgs.zsh-powerlevel10k
-    pkgs.git
-    pkgs.fzf
-    pkgs.zoxide
+    jq
+    fd
+    pyenv
+    numbat
+    hck
+    delta
+    bat
+    eza
+    zsh-powerlevel10k
+    git
+    fzf
+    zoxide
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -122,6 +127,9 @@ in {
       ZSH_DOTENV_FILE = ".env";
     };
     initContent = lib.mkOrder 500 ''
+    USER="${config.home.username}"
+    [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ] && . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+
     if [[ -r "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh" ]]; then
       source "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh"
     fi
@@ -141,5 +149,35 @@ in {
     userName = "Sam Stern";
     userEmail = "jstern@umass.edu";
   };
+  programs.tmux = lib.mkIf isContainer {
+    enable = true;
+    # You can specify your tmux configuration file here.
+    # configFile = ./dotfiles/tmux.conf;
+    plugins = with pkgs.tmuxPlugins; [
+      # You can add your tmux plugins here.
+      # For example, to add the 'tmux-resurrect' plugin:
+      # tmux-resurrect
+      {
+        plugin = tmuxPlugins.catppuccin;
+        extraConfig = '' 
+        set -g @catppuccin_flavour 'mocha'
+        set -g @catppuccin_window_tabs_enabled on
+        set -g @catppuccin_date_time "%H:%M"
+        '';
+      }
+      better-mouse-mode
+
+    ];
+    baseIndex = 1;
+    keyMode = "vi";
+    mouse = true;
+    extraConfig = ''
+    set-window-option -g pane-base-index 1
+    set-option -g renumber-windows on
+    bind '"' split-window -v -c "#{pane_current_path}"
+    bind % split-window -h -c "#{pane_current_path}"
+    '';
+  };
+
   home.file.".p10k.zsh".text = builtins.readFile ./dotfiles/.p10k.zsh;
 }
