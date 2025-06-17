@@ -1,11 +1,17 @@
 #!/bin/bash
 set -euo pipefail
-export TMPDIR_DEST=$1
+export TMPDIR_DEST="${1:-''}"
 export USER=$(whoami)
 
+IN_CONTAINER="${2:-0}"
 NIX_PROFILE_SH="$HOME/.nix-profile/etc/profile.d/nix.sh"
 NIX_BIN_DIR="$HOME/.nix-profile/bin"
 NIX_SBIN_DIR="$HOME/.nix-profile/sbin"
+echo "The script you are running has:"
+echo "basename: [$(basename "$0")]"
+echo "dirname : [$(dirname "$0")]"
+echo "pwd     : [$(pwd)]"
+echo "ls $(ls)"
 
 mkdir -p "$HOME/.nix-data"
 
@@ -78,13 +84,22 @@ if ! command -v home-manager &> /dev/null; then
 else
   echo "Home Manager already installed."
 fi
+echo "ZERO $0"
 # Generate local_info.nix by running the script
-cd "$HOME"
 
-echo "Saving .nix-channels to persistent storage..."
-cp "$HOME/.nix-channels" "$HOME/.nix-data/nix-channels"
-IS_CONTAINER=true home-manager switch -f ~/home.nix  --impure
+if [ $IN_CONTAINER -eq 1 ]; then
+  cd "$HOME"
 
-echo $(which zsh) > $TMPDIR_DEST
+  echo "Saving .nix-channels to persistent storage..."
+  cp "$HOME/.nix-channels" "$HOME/.nix-data/nix-channels"
+  IS_CONTAINER=true home-manager switch -f ~/home.nix  --impure -b backup
+else
+  home-manager switch -f $(dirname $0)/home.nix  --impure -b backup
+fi
+
+
+if [ $IN_CONTAINER -eq 1 ]; then
+  echo $(which zsh) > $TMPDIR_DEST
+fi
 # echo chsh -s $(which zsh)
 # chsh -s $(which zsh)

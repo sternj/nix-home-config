@@ -36,7 +36,7 @@ echo "Running local install script as $USERNAME..."
 WELLKNOWN_FNAME=/tmp/wellknown-file
 touch "$WELLKNOWN_FNAME"
 chmod a+w "$WELLKNOWN_FNAME"
-su - "$USERNAME" -c "~/install_user.sh $WELLKNOWN_FNAME"
+su - "$USERNAME" -c "~/install_user.sh $WELLKNOWN_FNAME 1"
 echo "CHANGING SHELL TO $(cat $WELLKNOWN_FNAME)"
 chsh -s $(cat $WELLKNOWN_FNAME) $USERNAME
 # exit 1

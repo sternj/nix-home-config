@@ -4,6 +4,11 @@ let
   homeDirectory = builtins.getEnv "HOME";
   isContainer_env = (builtins.getEnv "IS_CONTAINER");
   isContainer = if (isContainer_env == "true" || isContainer_env == "1") then true else false;
+  # pyenvVirtualenvSrc = builtins.fetchGit {
+  #   url = "https://github.com/pyenv/pyenv-virtualenv.git";
+  #   rev = "4b3f5f8468c6c7e2b2e55ba8d1bd192f03489d3a"; # Pin this!
+  # };
+
   # nothing =  "";
 in {
 
@@ -126,7 +131,8 @@ in {
       DISABLE_FZF_KEY_BINDINGS = "true";
       ZSH_DOTENV_FILE = ".env";
     };
-    initContent = lib.mkOrder 500 ''
+    initContent = lib.mkMerge[
+    (lib.mkOrder 500 ''
     USER="${config.home.username}"
     [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ] && . "$HOME/.nix-profile/etc/profile.d/nix.sh"
 
@@ -135,8 +141,14 @@ in {
     fi
     source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
     [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+    
 
-    '';
+    '')
+    (lib.mkOrder 1500 ''
+    eval "$(pyenv virtualenv-init -)"
+
+    '')
+   ];
   };
   programs.pyenv = {
     enable = true;
@@ -144,6 +156,14 @@ in {
     # You can specify the Python versions you want to install and use.
 
   };
+  
+  home.file."${config.programs.pyenv.rootDirectory}/plugins/pyenv-virtualenv".source =
+      builtins.fetchGit {
+        url = "https://github.com/pyenv/pyenv-virtualenv.git";
+        rev = "4b3f5f8468c6c7e2b2e55ba8d1bd192f03489d3a"; # Or pin to a commit for reproducibility
+      };
+  
+
   programs.git = {
     enable = true;
     userName = "Sam Stern";
